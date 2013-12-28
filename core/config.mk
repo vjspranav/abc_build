@@ -868,4 +868,78 @@ endif
 RSCOMPAT_32BIT_ONLY_API_LEVELS := 8 9 10 11 12 13 14 15 16 17 18 19 20
 RSCOMPAT_NO_USAGEIO_API_LEVELS := 8 9 10 11 12 13
 
-include $(BUILD_SYSTEM)/dumpvar.mk
+ifeq ($(JAVA_NOT_REQUIRED),true)
+# Remove java and tools from our path so that we make sure nobody uses them.
+unexport ANDROID_JAVA_HOME
+unexport JAVA_HOME
+export ANDROID_BUILD_PATHS:=$(abspath $(BUILD_SYSTEM)/no_java_path):$(ANDROID_BUILD_PATHS)
+export PATH:=$(abspath $(BUILD_SYSTEM)/no_java_path):$(PATH)
+endif
+
+# Projects clean of compiler warnings should be compiled with -Werror.
+# If most modules in a directory such as external/ have warnings,
+# the directory should be in ANDROID_WARNING_ALLOWED_PROJECTS list.
+# When some of its subdirectories are cleaned up, the subdirectories
+# can be added into ANDROID_WARNING_DISALLOWED_PROJECTS list, e.g.
+# external/fio/.
+ANDROID_WARNING_DISALLOWED_PROJECTS := \
+    art/% \
+    bionic/% \
+    external/fio/% \
+    hardware/interfaces/% \
+
+define find_warning_disallowed_projects
+    $(filter $(ANDROID_WARNING_DISALLOWED_PROJECTS),$(1)/)
+endef
+
+# Projects with compiler warnings are compiled without -Werror.
+ANDROID_WARNING_ALLOWED_PROJECTS := \
+    bootable/% \
+    cts/% \
+    dalvik/% \
+    development/% \
+    device/% \
+    external/% \
+    frameworks/% \
+    hardware/% \
+    packages/% \
+    system/% \
+    test/vts/% \
+    tools/adt/idea/android/ultimate/get_modification_time/jni/% \
+    vendor/% \
+
+define find_warning_allowed_projects
+    $(filter $(ANDROID_WARNING_ALLOWED_PROJECTS),$(1)/)
+endef
+
+# These goals don't need to collect and include Android.mks/CleanSpec.mks
+# in the source tree.
+dont_bother_goals := out \
+    snod systemimage-nodeps \
+    stnod systemtarball-nodeps \
+    userdataimage-nodeps userdatatarball-nodeps \
+    cacheimage-nodeps \
+    bptimage-nodeps \
+    vnod vendorimage-nodeps \
+    systemotherimage-nodeps \
+    ramdisk-nodeps \
+    bootimage-nodeps \
+    recoveryimage-nodeps \
+    vbmetaimage-nodeps \
+    product-graph dump-products
+
+ifndef KATI
+include $(BUILD_SYSTEM)/ninja_config.mk
+include $(BUILD_SYSTEM)/soong_config.mk
+endif
+
+ifneq ($(CUSTOM_BUILD),)
+## We need to be sure the global selinux policies are included
+## last, to avoid accidental resetting by device configs
+$(eval include vendor/nexus/sepolicy/sepolicy.mk)
+endif
+
+# Rules for QCOM targets
+include $(BUILD_SYSTEM)/qcom_target.mk
+
+iclude $(BUILD_SYSTEM)/dumpvar.mk
