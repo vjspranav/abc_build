@@ -28,6 +28,7 @@ combo_var_prefix := $(combo_2nd_arch_prefix)$(combo_target)
 
 # Set reasonable defaults for the various variables
 
+# if issues delete from here
 $(combo_var_prefix)CC := $(CC)
 $(combo_var_prefix)CXX := $(CXX)
 $(combo_var_prefix)AR := $(AR)
@@ -37,6 +38,12 @@ $(combo_var_prefix)GLOBAL_CFLAGS := -fno-exceptions -Wno-multichar
 $(combo_var_prefix)RELEASE_CFLAGS := -O2 -g -fno-strict-aliasing
 $(combo_var_prefix)GLOBAL_CPPFLAGS :=
 $(combo_var_prefix)GLOBAL_LDFLAGS :=
+
+# to here
+$(combo_var_prefix)GLOBAL_CFLAGS := $(BOARD_GLOBAL_CFLAGS)
+$(combo_var_prefix)RELEASE_CFLAGS := $(BOARD_RELEASE_CFLAGS)
+$(combo_var_prefix)GLOBAL_CPPFLAGS := $(BOARD_GLOBAL_CPPFLAGS)
+
 $(combo_var_prefix)GLOBAL_ARFLAGS := crsPD
 $(combo_var_prefix)GLOBAL_LD_DIRS :=
 
